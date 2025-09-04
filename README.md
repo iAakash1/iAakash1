@@ -6,7 +6,6 @@
 </p>
 
 <p align="center">
-  <a href="https://personalwebsiteofaakash.vercel.app/">Portfolio</a> •
   <a href="mailto:YOUR_EMAIL_HERE">Email</a> •
   <a href="https://github.com/iAakash1">GitHub</a> •
   <a href="https://www.linkedin.com/in/YOUR_LINKEDIN_HANDLE/">LinkedIn</a> •
