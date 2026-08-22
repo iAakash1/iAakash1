@@ -1,7 +1,9 @@
 <h1 align="center">Aakash Jawle</h1>
 
 <p align="center">
-  <b>Data &amp; AI engineer</b> — I build systems where every number can be traced back to where it came from.
+  <a href="https://github.com/iAakash1">
+    <img src="https://readme-typing-svg.demolab.com?font=JetBrains+Mono&weight=600&size=21&duration=3200&pause=900&color=2F81F7&center=true&vCenter=true&width=760&height=44&lines=Data+%26+AI+engineer;Pipelines+%C2%B7+retrieval+%C2%B7+fine-tuning;Every+number+traceable+to+its+source" alt="Data &amp; AI engineer"/>
+  </a>
 </p>
 
 <p align="center">
@@ -41,9 +43,37 @@ Earlier this year I was at **TIH-IoT, IIT Bombay**, shipping crop-disease vision
 
 Most screeners score a company in isolation. OmniSignal scores it **against the macro cycle it's sitting in**.
 
-Fifteen factors across five signal families are weighted by market regime, then passed through a probabilistic **macro-stress gate** computed live from FRED — yield curve inversion, CPI, Fed funds. What comes out is a single verdict where **every number is auditable**: each factor's contribution, every confidence deduction, and all nine risk components are shown, not summarized away. A language model narrates the finished scorecard; it never computes or alters a number.
+Fifteen factors across five signal families are weighted by market regime, then passed through a probabilistic **macro-stress gate** computed live from FRED. What comes out is a single verdict where **every number is auditable**: each factor's contribution, every confidence deduction, and all nine risk components are shown, not summarized away. A language model narrates the finished scorecard; it never computes or alters a number.
+
+<img src="https://raw.githubusercontent.com/iAakash1/iAakash1/main/omnisignal-srm.png" alt="Systemic Risk Multiplier waterfall" width="100%"/>
 
 The data layer is the part I'm proudest of. **13 upstream vendors sit behind 5 source-agnostic facades**, so nothing above them knows who served a price. Requests deduplicate in flight, fail over in health order, cross-validate numerically between two vendors, and fall back to stale cache as a last resort — a vendor outage **degrades** a response instead of failing it.
+
+```mermaid
+flowchart LR
+    A1["Polygon · Finnhub · TwelveData<br/>FMP · MarketStack · yfinance"] --> P1["MarketDataProvider"]
+    A2["Alpha Vantage · Finnhub · FMP"] --> P2["FundamentalsProvider"]
+    A3["NewsAPI · GNews<br/>Yahoo RSS · Tavily"] --> P3["NewsProvider"]
+    A4["FRED"] --> P4["MacroProvider"]
+    A5["Tavily · Exa"] --> P5["SearchProvider"]
+
+    P1 --> E["Scoring engine v2.1<br/>15 factors · 5 families"]
+    P2 --> E
+    P3 --> E
+    P5 --> E
+    P4 --> G["Macro-stress gate<br/>Systemic Risk Multiplier"]
+    E --> G
+    G --> V["Verdict<br/>every contribution shown"]
+
+    classDef vendor fill:#FFF3DE,stroke:#F5A524,stroke-width:1.5px,color:#4A3200
+    classDef facade fill:#E4EEFF,stroke:#2F6FED,stroke-width:1.5px,color:#0B2A63
+    classDef engine fill:#E2F6EE,stroke:#17A673,stroke-width:2px,color:#06412A
+    classDef out fill:#F0E7FF,stroke:#8B5CF6,stroke-width:2px,color:#2E1065
+    class A1,A2,A3,A4,A5 vendor
+    class P1,P2,P3,P4,P5 facade
+    class E,G engine
+    class V out
+```
 
 Validation is walk-forward on an expanding window with no look-ahead, graded against a 12-1 momentum baseline and buy &amp; hold: rank IC, hit rate, confidence calibration, Sharpe/Sortino/Calmar, and PSI drift — rendered live in the app for any ticker.
 
@@ -78,8 +108,13 @@ That corpus supervises **QLoRA fine-tuning of Qwen2.5-VL-7B** on Apple Silicon (
   &nbsp;
   <img src="https://raw.githubusercontent.com/iAakash1/experimentation/main/docs/images/mango_metrics_comparison.png" alt="Mango — base vs fine-tuned" width="46%"/>
 </p>
+
 <p align="center">
-  <img src="https://raw.githubusercontent.com/iAakash1/experimentation/main/docs/images/tomato_per_disease_f1.png" alt="Tomato per-disease F1" width="70%"/>
+  <img src="https://raw.githubusercontent.com/iAakash1/experimentation/main/docs/images/tomato_per_disease_f1.png" alt="Tomato per-disease F1" width="72%"/>
+</p>
+
+<p align="center">
+  <img src="https://raw.githubusercontent.com/iAakash1/experimentation/main/docs/images/tomato_confusion_matrix.png" alt="Tomato confusion matrix" width="58%"/>
 </p>
 
 Macro-averaged on purpose, so rare classes aren't masked by the common ones — and the weakest class (mango die back, F1 0.077) is reported rather than buried. These are in-distribution scores; casual phone photos score lower, and the demo says so with an explicit **low-confidence / unknown** state instead of a confident wrong answer.
@@ -94,33 +129,39 @@ Macro-averaged on purpose, so rare classes aren't masked by the common ones — 
 
 Ask an LLM a research question and you get fluent prose with plausible citations. Some are real. Checking which ones is the actual work — and the system that produced them gives you no help with it.
 
-ResearchAgent inverts that: the language model is an **untrusted component**. It proposes, and everything it proposes has to survive validators that can reject it. The guarantee is structural, not procedural — a `KnowledgeObject` **cannot be constructed** without evidence, a `ResearchFinding` **cannot be constructed** without a `Citation`, and a `Citation` **cannot be constructed** without an evidence-bundle id. A claim with no locatable evidence never becomes a finding at all; it's counted as a hypothesis and the rate is reported.
+ResearchAgent inverts that: the language model is an **untrusted component**. It proposes, and everything it proposes has to survive validators that can reject it. The guarantee is structural, not procedural — a `KnowledgeObject` **cannot be constructed** without evidence, a `ResearchFinding` **cannot be constructed** without a `Citation`, and a `Citation` **cannot be constructed** without an evidence-bundle id. A claim with no locatable evidence never becomes a finding at all.
 
 ```mermaid
 flowchart TD
-    A["PDF corpus"] --> B["Parse: pages, sections, paragraphs"]
-    B --> C["Extract typed knowledge, each grounded in a quote"]
+    A["📄 PDF corpus"] --> B["Parse<br/>pages · sections · paragraphs"]
+    B --> C["Extract typed knowledge<br/>each grounded in a quote"]
     C --> D["Evidence store"]
-    D --> E["BM25 + embeddings + knowledge graph"]
+    D --> E["BM25 · embeddings · knowledge graph"]
     E --> F["Retrieval agent"]
     F --> G["Reasoning agent"]
     G --> H["Verification agent"]
     H -- "insufficient evidence" --> F
     H -- "contradicted" --> G
     H -- "verified" --> I["Reviewer agent"]
-    I --> J["Audited finding: citation resolves to a page and paragraph"]
+    I --> J["✅ Audited finding<br/>citation resolves to a page and paragraph"]
+
+    classDef ingest fill:#E4EEFF,stroke:#2F6FED,stroke-width:1.5px,color:#0B2A63
+    classDef store fill:#E2F6EE,stroke:#17A673,stroke-width:1.5px,color:#06412A
+    classDef agent fill:#F0E7FF,stroke:#8B5CF6,stroke-width:1.5px,color:#2E1065
+    classDef out fill:#FFF3DE,stroke:#F5A524,stroke-width:2px,color:#4A3200
+    class A,B,C ingest
+    class D,E store
+    class F,G,H,I agent
+    class J out
 ```
 
 Five agents run under a checkpointed **LangGraph** state machine that routes on the verdict and budgets iterations, tool calls and tokens — an interrupted run resumes from its last checkpoint instead of restarting. Verification is adversarial by construction: provenance resolves *before* the model is asked anything, and the verifier is shown evidence the finding did **not** cite, because contradicting material is by definition what got left out.
 
+<img src="https://raw.githubusercontent.com/iAakash1/iAakash1/main/researchagent-pipeline.png" alt="Evidence pipeline and model comparison" width="100%"/>
+
 Retrieval is measured on a 26-query gold set whose judgements were derived by reading the corpus — never generated by an LLM, because a benchmark labelled by a model measures agreement with that model:
 
-| Arm | P@5 | R@10 | MRR | nDCG@5 |
-|---|---:|---:|---:|---:|
-| deterministic | 0.354 | 0.466 | 0.666 | 0.412 |
-| bm25 | 0.308 | 0.548 | 0.648 | 0.377 |
-| **semantic** | **0.600** | **0.738** | **0.910** | **0.698** |
-| hybrid | 0.469 | 0.619 | 0.853 | 0.566 |
+<img src="https://raw.githubusercontent.com/iAakash1/iAakash1/main/researchagent-retrieval.png" alt="Retrieval benchmark — four arms, one corpus" width="100%"/>
 
 Honest reading: semantic wins clearly and **hybrid fusion dilutes it** — a weight ablation showed a monotone trend with pure-dense as the best endpoint. The production default is still `deterministic`, because all 26 gold queries are `draft` status and only reviewed judgements may back a claim. Nothing was tuned to make hybrid look better.
 
@@ -133,6 +174,28 @@ Honest reading: semantic wins clearly and **hybrid fusion dilutes it** — a wei
 ## ⚡ MTCP — Multithreaded TCP Server (C++17 / POSIX)
 
 No frameworks, no event-loop library, no abstractions — `socket()`, `bind()`, `listen()`, `accept()` and a fixed pthread pool behind a **bounded** task queue, so the server applies backpressure instead of OOM-ing under load and idle workers cost zero CPU.
+
+```mermaid
+flowchart LR
+    C["Clients"] --> L["Listener<br/>accept loop · EINTR-aware"]
+    L --> Q["Bounded task queue<br/>at cap → drop and close, backpressure"]
+    Q --> W1["worker-0"]
+    Q --> W2["worker-1"]
+    Q --> W3["worker-n"]
+    W1 --> H["handleClient<br/>recvLine · sendAll · MSG_NOSIGNAL · SO_RCVTIMEO"]
+    W2 --> H
+    W3 --> H
+    H --> M["Atomic metrics<br/>logger + stats threads"]
+
+    classDef net fill:#E4EEFF,stroke:#2F6FED,stroke-width:1.5px,color:#0B2A63
+    classDef queue fill:#FFF3DE,stroke:#F5A524,stroke-width:2px,color:#4A3200
+    classDef work fill:#F0E7FF,stroke:#8B5CF6,stroke-width:1.5px,color:#2E1065
+    classDef obs fill:#E2F6EE,stroke:#17A673,stroke-width:1.5px,color:#06412A
+    class C,L net
+    class Q queue
+    class W1,W2,W3,H work
+    class M obs
+```
 
 The details are the point: `sendAll()` handles partial TCP writes, `MSG_NOSIGNAL` stops one dead client from killing the process, `SO_RCVTIMEO` keeps slow clients from starving the pool, and `pthread_cond_broadcast` drains in-flight work on graceful shutdown. Clean under Valgrind and ThreadSanitizer.
 
@@ -191,16 +254,16 @@ CGPA **6.96 / 10** &nbsp;·&nbsp; Coursework: Database Management Systems, Data 
 </picture>
 &nbsp;&nbsp;
 <picture>
-  <source media="(prefers-color-scheme: dark)" srcset="https://github-profile-summary-cards.vercel.app/api/cards/repos-per-language?username=iAakash1&theme=github_dark"/>
-  <img src="https://github-profile-summary-cards.vercel.app/api/cards/repos-per-language?username=iAakash1&theme=default" height="180" alt="Top languages by repo"/>
+  <source media="(prefers-color-scheme: dark)" srcset="https://github-profile-summary-cards.vercel.app/api/cards/productive-time?username=iAakash1&theme=github_dark&utcOffset=5.5"/>
+  <img src="https://github-profile-summary-cards.vercel.app/api/cards/productive-time?username=iAakash1&theme=default&utcOffset=5.5" height="180" alt="Commits by time of day"/>
 </picture>
 
 <br/><br/>
 
 <picture>
-  <source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/iAakash1/iAakash1/output/snake-dark.svg"/>
-  <source media="(prefers-color-scheme: light)" srcset="https://raw.githubusercontent.com/iAakash1/iAakash1/output/snake.svg"/>
-  <img src="https://raw.githubusercontent.com/iAakash1/iAakash1/output/snake.svg" alt="contribution graph"/>
+  <source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/iAakash1/iAakash1/output/snake-dark.svg?v=2"/>
+  <source media="(prefers-color-scheme: light)" srcset="https://raw.githubusercontent.com/iAakash1/iAakash1/output/snake.svg?v=2"/>
+  <img src="https://raw.githubusercontent.com/iAakash1/iAakash1/output/snake.svg?v=2" alt="contribution graph"/>
 </picture>
 
 <br/>
