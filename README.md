@@ -36,7 +36,7 @@ Earlier this year I was at **TIH-IoT, IIT Bombay**, shipping crop-disease vision
 ## 🛰️ OmniSignal — Explainable Equity Research Terminal
 
 <a href="https://mini-aladding.vercel.app">
-  <img src="https://raw.githubusercontent.com/iAakash1/iAakash1/main/assets/omnisignal.png" alt="OmniSignal — equity research terminal" width="100%"/>
+  <img src="https://raw.githubusercontent.com/iAakash1/iAakash1/main/omnisignal.png" alt="OmniSignal — equity research terminal" width="100%"/>
 </a>
 
 Most screeners score a company in isolation. OmniSignal scores it **against the macro cycle it's sitting in**.
