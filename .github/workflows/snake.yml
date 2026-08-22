@@ -2,21 +2,31 @@ name: Generate Snake
 
 on:
   schedule:
-    - cron: "0 0 * * *"   # daily at 00:00 UTC
-  workflow_dispatch:
+    - cron: "0 0 * * *"      # daily at 00:00 UTC
+  workflow_dispatch:          # run it by hand from the Actions tab
+  push:
+    branches: [main]          # regenerate whenever the profile is updated
 
 permissions:
   contents: write
+
+concurrency:
+  group: snake
+  cancel-in-progress: true
 
 jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - uses: Platane/snk@v3
+      - name: Generate the contribution snake (light + dark)
+        uses: Platane/snk@v3
         with:
           github_user_name: iAakash1
-          outputs: dist/snake.svg
-      - name: Push snake.svg to output branch
+          outputs: |
+            dist/snake.svg
+            dist/snake-dark.svg?palette=github-dark
+
+      - name: Push dist/ to the output branch
         uses: crazy-max/ghaction-github-pages@v3
         with:
           target_branch: output
